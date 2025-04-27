@@ -16,12 +16,7 @@ if str(package_dir) not in sys.path:
     sys.path.insert(0, str(package_dir))
 
 # Import necessary modules
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-
-# Create the API structures
-from src.api.app import create_app
 
 def main():
     import argparse
@@ -38,13 +33,24 @@ def main():
         default=8000, 
         help="Port to bind the API server to (default: 8000)"
     )
+    parser.add_argument(
+        "--reload",
+        action="store_true",
+        help="Enable auto-reload for development"
+    )
     
     args = parser.parse_args()
     
-    # Create and run the API app
-    app = create_app()
     print(f"Starting Enhanced File Manager API server on {args.host}:{args.port}")
-    uvicorn.run(app, host=args.host, port=args.port)
+    
+    if args.reload:
+        # Use a string reference to the app for reload support
+        uvicorn.run("src.api.app:create_app", host=args.host, port=args.port, reload=True)
+    else:
+        # For normal operation, create the app directly
+        from src.api.app import create_app
+        app = create_app()
+        uvicorn.run(app, host=args.host, port=args.port)
 
 if __name__ == "__main__":
     main()

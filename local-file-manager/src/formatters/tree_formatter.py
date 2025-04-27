@@ -28,12 +28,8 @@ def format_directory_tree(path: str, max_items: int = 15, max_depth: int = 3) ->
     # Add the root
     lines.append(f"{path_obj.name}/")
     
-    # Track the total number of items we're showing
-    shown_item_count = 0
-    
     def add_directory(current_path, prefix="", depth=1):
-        nonlocal shown_item_count
-        
+        # Stop recursion if we've reached max depth
         if depth > max_depth:
             lines.append(f"{prefix}└── ...")
             return
@@ -42,26 +38,27 @@ def format_directory_tree(path: str, max_items: int = 15, max_depth: int = 3) ->
             # Get all items in this directory
             items = list(current_path.iterdir())
             
-            # Sort by directories first, then files
-            items.sort(key=lambda x: (0 if x.is_file() else 1, x.name.lower()))
+            # Sort items: directories first, then alphabetically
+            items.sort(key=lambda x: (0 if x.is_dir() else 1, x.name.lower()))
             
             # Limit the number of items to show
             display_items = items[:max_items]
             hidden_count = len(items) - len(display_items)
             
-            # Track if this is the last item for better tree formatting
+            # Process each item
             for i, item in enumerate(display_items):
-                shown_item_count += 1
                 is_last = (i == len(display_items) - 1) and (hidden_count == 0)
                 
                 # Choose the correct prefix characters
-                curr_prefix = prefix + "└── " if is_last else prefix + "├── "
-                next_prefix = prefix + "    " if is_last else prefix + "│   "
+                curr_prefix = f"{prefix}└── " if is_last else f"{prefix}├── "
+                next_prefix = f"{prefix}    " if is_last else f"{prefix}│   "
                 
+                # Add directories with trailing slash and process their children
                 if item.is_dir():
                     lines.append(f"{curr_prefix}{item.name}/")
                     add_directory(item, next_prefix, depth + 1)
                 else:
+                    # Just add files
                     lines.append(f"{curr_prefix}{item.name}")
             
             # Show count of hidden items if any

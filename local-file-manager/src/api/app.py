@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import browsing, files, search
+from .routes import browsing, files, search, download_structure
 
 
 def create_app() -> FastAPI:
@@ -32,6 +32,7 @@ def create_app() -> FastAPI:
     app.include_router(browsing.router, prefix="/api")
     app.include_router(files.router, prefix="/api")
     app.include_router(search.router, prefix="/api")
+    app.include_router(download_structure.router, prefix="/api")  # Add the new router
 
     # Add root endpoint
     @app.get("/")

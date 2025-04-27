@@ -1,6 +1,7 @@
 """File browsing operations."""
 
 import os
+import stat  # Added import for FILE_ATTRIBUTE_HIDDEN
 import shutil
 import platform
 from pathlib import Path
