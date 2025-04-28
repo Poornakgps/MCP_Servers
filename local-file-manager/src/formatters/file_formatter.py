@@ -19,7 +19,6 @@ def format_file_details(details: Dict[str, Any]) -> str:
     
     lines = []
     
-    # Add file/directory name with type
     type_label = {
         "file": "File",
         "directory": "Directory",
@@ -30,17 +29,14 @@ def format_file_details(details: Dict[str, Any]) -> str:
     lines.append(f"{type_label}: {details.get('name', 'Unnamed')}")
     lines.append(f"Path: {details.get('path', 'N/A')}")
     
-    # Add size for files
     if details.get("type") == "file" and "size" in details:
         lines.append(f"Size: {format_size(details['size'])}")
     
-    # Add timestamps
     if "created" in details:
         lines.append(f"Created: {format_date(details['created'])}")
     if "modified" in details:
         lines.append(f"Modified: {format_date(details['modified'])}")
     
-    # Add directory-specific info
     if details.get("type") == "directory" and "item_count" in details:
         count = details["item_count"]
         lines.append(f"Contains: {count} item{'s' if count != 1 else ''}")
@@ -55,11 +51,9 @@ def format_file_details(details: Dict[str, Any]) -> str:
             if contains:
                 lines.append(f"Types: {' and '.join(contains)}")
     
-    # Add symlink target
     if details.get("type") == "symlink" and "target" in details:
         lines.append(f"Target: {details['target']}")
     
-    # Add file extension
     if "extension" in details:
         lines.append(f"Extension: {details['extension']}")
     
@@ -84,25 +78,21 @@ def format_directory_listing(dir_data: Dict[str, Any]) -> str:
     if not items:
         return f"Directory: {directory}\nNo items found."
     
-    # Sort items: directories first, then files
     items.sort(key=lambda x: (0 if x["type"] == "file" else 1, x["name"].lower()))
     
     lines = [f"Directory: {directory}"]
     lines.append(f"Total items: {len(items)}")
     lines.append("")
     
-    # Group items by type
     directories = [item for item in items if item["type"] == "directory"]
     files = [item for item in items if item["type"] == "file"]
     others = [item for item in items if item["type"] not in ("directory", "file")]
     
-    # Add directories
     if directories:
         lines.append("Directories:")
         for d in directories:
             lines.append(f"  {d['name']}/")
     
-    # Add files with sizes
     if files:
         lines.append("Files:")
         for f in files:
@@ -110,7 +100,6 @@ def format_directory_listing(dir_data: Dict[str, Any]) -> str:
             extension = f.get("extension", "")
             lines.append(f"  {f['name']} ({size_str})")
     
-    # Add other items
     if others:
         lines.append("Other items:")
         for o in others:
