@@ -1,30 +1,55 @@
-﻿# Enhanced File Manager MCP Server
+﻿# Enhanced File Manager
 
-This MCP server provides a user-friendly interface for browsing and managing local files, with nicely formatted output designed for readability.
+A cross-platform local file management system featuring dual interfaces: an MCP server for AI assistants and a REST API for programmatic access. The Enhanced File Manager provides formatted output, advanced search capabilities, and file operations all in one convenient package.
 
 ## Features
 
-- Browse local drives and directories with tree-style output
-- Search files by name, content, or attributes
-- File operations (create, rename, delete)
-- Find duplicate or recent files
+- File browsing with tree-style visualizations
+- Advanced search capabilities (name, content, size, date)
+- File operations (create, rename, delete, move, copy)
+- Find duplicate or recently modified files
 - Human-readable formatting for file sizes, dates, and directory structures
-- REST API interface for programmatic access
+- Cross-platform path handling
+- REST API for programmatic access
+
+## Platform-Specific Path Formats
+
+The Enhanced File Manager handles paths differently based on your operating system:
+
+### Windows
+- Uses backslashes (`\`) as path separators
+- Example: `C:\Users\username\Documents`
+- In API requests, you can use either:
+  - Double backslashes: `C:\\Users\\username\\Documents` (JSON-escaped)
+  - Forward slashes: `C:/Users/username/Documents` (automatically converted)
+
+### macOS/Linux
+- Uses forward slashes (`/`) as path separators
+- Example: `/home/username/Documents`
+
+The server automatically normalizes paths between platforms for cross-platform compatibility.
 
 ## Installation
 
+1. Clone the repository:
+```bash
+git clone https://github.com/username/enhanced-file-manager.git
+cd enhanced-file-manager
+```
+
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Usage
 
-### As an MCP Server
+### Running as MCP Server
 
-Run the server:
+Run the server in MCP mode for AI assistants:
 
 ```bash
-python -m src.server
+python src/server.py mcp
 ```
 
 Or import and use in your own code:
@@ -36,62 +61,29 @@ from src.server import server
 server.run()
 ```
 
-### As a REST API
+### Running as REST API Server
 
 Run the API server:
 
 ```bash
-python api-server.py
+python -m src.server.py
 ```
 
-API documentation will be available at: http://localhost:8000/docs
-
-## Examples
-
-### MCP Usage Examples
-
-List drives:
-```
-list_drives()
+For development with hot reload:
+```bash
+python -m src.server.py --reload
 ```
 
-Get home directory:
-```
-get_home_directory()
-```
+Access API documentation at: http://localhost:8000/docs
 
-Browse a directory:
-```
-list_directory("/path/to/directory")
-```
+### Environment Variables
 
-Search for files:
-```
-search_by_name("/path/to/search", "*.txt")
-```
+- `PORT`: Change the API server port (default: 8000)
+- `FILE_MANAGER_MODE`: Set default mode (`api` or `mcp`)
 
-### API Usage Examples
-
-List drives:
-```
-GET /api/drives
-```
-
-Get file details:
-```
-POST /api/files/details
-{
-  "path": "/path/to/file"
-}
-```
-
-Search for files:
-```
-POST /api/search/by-name
-{
-  "start_dir": "/path/to/search",
-  "pattern": "*.txt"
-}
+Example:
+```bash
+PORT=8080 FILE_MANAGER_MODE=api python src/server.py
 ```
 
 ## Project Structure
@@ -100,7 +92,7 @@ POST /api/search/by-name
 enhanced-file-manager/
 ├── src/
 │   ├── __init__.py                  # Package initialization
-│   ├── server.py                    # Main server initialization and entry point
+│   ├── server.py                    # Main server initialization
 │   ├── formatters/                  # Output formatting utilities
 │   │   ├── __init__.py
 │   │   ├── file_formatter.py        # File details formatting
@@ -109,9 +101,9 @@ enhanced-file-manager/
 │   │   └── utils.py                 # Common formatting utilities
 │   ├── operations/                  # File system operations
 │   │   ├── __init__.py
-│   │   ├── browse.py                # Browsing tools (list drives, dirs, etc)
+│   │   ├── browse.py                # Browsing tools
 │   │   ├── search.py                # Search tools
-│   │   └── modify.py                # File modification tools (create, delete, etc)
+│   │   └── modify.py                # File modification tools
 │   ├── api/                         # API interface
 │   │   ├── __init__.py
 │   │   ├── app.py                   # FastAPI application setup
@@ -124,7 +116,18 @@ enhanced-file-manager/
 │   └── utils/                       # Helper utilities
 │       ├── __init__.py
 │       └── path_utils.py            # Path handling utilities
-├── api-server.py                    # Script to run the API server
 ├── README.md                        # Project documentation
 └── requirements.txt                 # Project dependencies
 ```
+
+## API Base URL
+
+When running the API server, it's accessible at:
+
+```
+http://localhost:8000/api
+```
+
+## Security Considerations
+
+The file manager accesses the local file system, so be careful when exposing it over a network. By default, it only listens on localhost. Consider implementing authentication if you need remote access.

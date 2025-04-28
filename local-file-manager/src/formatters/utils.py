@@ -15,16 +15,13 @@ def format_size(size_bytes: int) -> str:
     if size_bytes is None:
         return "N/A"
     
-    # Define unit suffixes
     suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
     
-    # Calculate the unit index and value
     i = 0
     while size_bytes >= 1024 and i < len(suffixes) - 1:
         size_bytes /= 1024
         i += 1
     
-    # Format the output with appropriate precision
     if i == 0:
         return f"{size_bytes} {suffixes[i]}"
     else:

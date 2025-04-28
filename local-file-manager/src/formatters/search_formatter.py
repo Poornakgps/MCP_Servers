@@ -24,7 +24,6 @@ def format_search_results(results: Dict[str, Any]) -> str:
     
     lines = []
     
-    # Format query information based on search type
     if query_type == "name":
         lines.append(f"Search by name: '{query.get('pattern', '')}' in {query.get('start_dir', '')}")
     elif query_type == "content":
@@ -37,13 +36,10 @@ def format_search_results(results: Dict[str, Any]) -> str:
     elif query_type == "duplicates":
         lines.append(f"Duplicate files in {query.get('start_dir', '')}")
     
-    # Add result count
     lines.append(f"Found {result_count} result{'s' if result_count != 1 else ''}")
     lines.append("")
     
-    # Format results differently based on search type
     if query_type == "duplicates":
-        # Handle duplicate groups
         groups = results.get("duplicate_groups", [])
         for i, group in enumerate(groups, 1):
             name = group.get("name", "Unnamed")
@@ -57,7 +53,6 @@ def format_search_results(results: Dict[str, Any]) -> str:
             lines.append("")
         
     else:
-        # Handle regular search results
         if results_list:
             for i, item in enumerate(results_list, 1):
                 item_type = item.get("type", "unknown")
@@ -69,14 +64,12 @@ def format_search_results(results: Dict[str, Any]) -> str:
                 else:
                     lines.append(f"{i}. {item_type.capitalize()}: {item_path}")
                 
-                # Add match context for content search
                 if query_type == "content" and "match_context" in item:
                     context = item["match_context"].replace("\n", " ").strip()
                     if len(context) > 100:
                         context = context[:97] + "..."
                     lines.append(f"   Match: \"{context}\"")
                 
-                # Add modified date for recent files
                 if query_type == "recent" and "modified" in item:
                     lines.append(f"   Modified: {format_date(item['modified'])}")
                 
