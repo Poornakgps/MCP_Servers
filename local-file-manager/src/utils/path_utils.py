@@ -1,3 +1,5 @@
+"""Path utility functions for handling file paths safely across platforms."""
+
 import os
 import platform
 import re
@@ -22,30 +24,52 @@ def safe_path(path_str: str) -> Path:
     # Detect current OS
     current_os = platform.system()
     
-    # 1. Un-escape any double-escaped backslashes
-    path_str = path_str.replace('\\\\', '\\')
+    # Handle quoted paths (sometimes paths are copied with quotes)
+    path_str = path_str.strip('"\'')
     
-    # 2. If we’re on Unix but see a Windows path like "C:\foo\bar"
-    if current_os != 'Windows' and re.match(r'^[A-Za-z]:\\', path_str):
+    # Handle Windows UNC paths (\\server\share)
+    if path_str.startswith('\\\\') and current_os == 'Windows':
+        # UNC path already in correct format for Windows
+        pass
+    elif path_str.startswith('\\\\') and current_os != 'Windows':
+        # Convert UNC path to a format that might work on Unix
+        parts = path_str[2:].split('\\', 1)
+        if len(parts) == 2:
+            server, share = parts
+            # Need to do string replacement outside f-string to avoid escape issues
+            share_fixed = share.replace('\\', '/')
+            path_str = f"//{server}/{share_fixed}"
+    
+    # If we're on Unix but see a Windows path like "C:\foo\bar" or "C:/foo/bar"
+    elif current_os != 'Windows' and re.match(r'^[A-Za-z]:[\\/]', path_str):
         drive, rest = path_str[0], path_str[2:]
-        # do the backslash→slash replacement before the f-string
+        # Need to do string replacement outside f-string
         rest_converted = rest.replace('\\', '/')
         path_str = f"/mnt/{drive.lower()}{rest_converted}"
     
-    # 3. If we’re on Windows but see a Unix-style path
+    # If we're on Windows but see a Unix-style path
     elif current_os == 'Windows' and path_str.startswith('/'):
-        print(f"Warning: Unix-style path '{path_str}' may not work correctly on Windows")
+        # Try to convert simple Unix paths to Windows format
+        if path_str.startswith('/mnt/') and len(path_str) > 5 and path_str[5].isalpha():
+            # Convert /mnt/c/path to C:\path
+            drive = path_str[5].upper()
+            # Need to do string replacement outside f-string
+            rest = path_str[6:].replace('/', '\\')
+            path_str = f"{drive}:{rest}"
+        else:
+            # Just convert separators for Windows
+            path_str = path_str.replace('/', '\\')
     
-    # 4. Normalize separators for the current OS
+    # Normalize separators for the current OS
     if current_os == 'Windows':
         path_str = path_str.replace('/', '\\')
     else:
         path_str = path_str.replace('\\', '/')
     
-    # 5. Expand user home (~)
+    # Expand user home (~)
     expanded = os.path.expanduser(path_str)
     
-    # 6. Build a pathlib.Path and make absolute
+    # Build a pathlib.Path and make absolute
     path_obj = Path(expanded)
     if not path_obj.is_absolute():
         path_obj = path_obj.absolute()
