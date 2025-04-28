@@ -27,18 +27,16 @@ def create_app() -> FastAPI:
     Returns:
         FastAPI application instance
     """
-    # Create FastAPI app
     app = FastAPI(
         title="Enhanced File Manager API",
         description="API for browsing, searching, and managing local files with enhanced formatting",
         version="1.0.0",
-        default_response_class=CustomJSONResponse,  # Use our custom response class
+        default_response_class=CustomJSONResponse,
     )
 
-    # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # In production, restrict this to your frontend URL
+        allow_origins=["*"],  
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -50,7 +48,6 @@ def create_app() -> FastAPI:
     app.include_router(search.router, prefix="/api")
     app.include_router(download_structure.router, prefix="/api")
 
-    # Add root endpoint
     @app.get("/")
     async def root():
         return {

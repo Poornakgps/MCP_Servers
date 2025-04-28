@@ -26,10 +26,8 @@ def get_drive_info_formatted() -> str:
     lines = []
     
     if platform.system() == "Windows":
-        # Windows drive listing
         lines.append("Available Drives:")
         
-        # Get all drive letters from A to Z
         for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
             drive = f"{letter}:"
             drive_path = Path(f"{drive}\\")
@@ -39,7 +37,6 @@ def get_drive_info_formatted() -> str:
                     total, used, free = shutil.disk_usage(drive)
                     usage_percent = (used / total) * 100 if total else 0
                     
-                    # Format the drive information
                     drive_info = (
                         f"{drive} "
                         f"[{format_size(total)} total, "
@@ -48,7 +45,6 @@ def get_drive_info_formatted() -> str:
                     )
                     
                     if drive_path.is_mount():
-                        # Try to get volume name
                         try:
                             import ctypes
                             kernel32 = ctypes.windll.kernel32
@@ -69,18 +65,15 @@ def get_drive_info_formatted() -> str:
                 except:
                     lines.append(f"  {drive} [Unavailable]")
     else:
-        # Unix-like systems
         lines.append("Mounted Filesystems:")
         
         try:
-            # Try to get mount points from /proc/mounts
             with open('/proc/mounts', 'r') as f:
                 for line in f:
                     parts = line.split()
                     if len(parts) >= 2:
                         device, mountpoint = parts[0], parts[1]
-                        
-                        # Skip common virtual filesystems
+
                         if device.startswith('/dev/') and not any(p in mountpoint for p in ('proc', 'sys', 'dev', 'run', 'boot')):
                             try:
                                 total, used, free = shutil.disk_usage(mountpoint)
@@ -95,7 +88,6 @@ def get_drive_info_formatted() -> str:
                             except:
                                 lines.append(f"  {mountpoint} ({device}) [Error reading]")
         except:
-            # Fallback to just showing root
             try:
                 total, used, free = shutil.disk_usage('/')
                 usage_percent = (used / total) * 100 if total else 0
@@ -127,7 +119,6 @@ def get_file_details_dict(path: Path) -> Dict[str, Any]:
         if path.is_symlink():
             file_type = "symlink"
         
-        # Basic information for all file types
         details = {
             "name": path.name,
             "path": str(path.resolve()),
@@ -141,7 +132,6 @@ def get_file_details_dict(path: Path) -> Dict[str, Any]:
             "permissions": stat_info.st_mode,
         }
         
-        # Type-specific information
         if file_type == "symlink":
             try:
                 details["target"] = str(path.resolve())
@@ -157,7 +147,6 @@ def get_file_details_dict(path: Path) -> Dict[str, Any]:
             except PermissionError:
                 details["error"] = "Permission denied"
         
-        # Add file extension for files
         if file_type == "file" and path.suffix:
             details["extension"] = path.suffix.lower()
             
@@ -219,7 +208,6 @@ def register_browse_tools(server: FastMCP) -> None:
         try:
             home_dir = str(Path.home())
             
-            # Process file details
             details = get_file_details_dict(Path(home_dir))
             
             formatted_output = format_file_details(details)
@@ -264,11 +252,9 @@ def register_browse_tools(server: FastMCP) -> None:
             if not path_obj.is_dir():
                 return f"Not a directory: {path}"
             
-            # Process directory contents
             contents = []
             
             for item in path_obj.iterdir():
-                # Skip hidden files if not requested
                 if not include_hidden and item.name.startswith('.'):
                     continue
                 
@@ -276,7 +262,6 @@ def register_browse_tools(server: FastMCP) -> None:
                     details = get_file_details_dict(item)
                     contents.append(details)
                 except:
-                    # Skip items we can't access
                     pass
             
             dir_data = {
@@ -284,7 +269,6 @@ def register_browse_tools(server: FastMCP) -> None:
                 "items": contents
             }
             
-            # Format the directory listing
             formatted_output = format_directory_listing(dir_data)
             formatted_output += "\n\n" + format_directory_tree(path)
             
@@ -316,12 +300,10 @@ def register_browse_tools(server: FastMCP) -> None:
             if not path_obj.exists():
                 return f"Path does not exist: {path}"
             
-            # Process file details
             details = get_file_details_dict(path_obj)
             
             formatted_output = format_file_details(details)
             
-            # If it's a directory, add the tree view
             if details.get("type") == "directory":
                 formatted_output += "\n\n" + format_directory_tree(path)
             
@@ -364,22 +346,18 @@ def register_browse_tools(server: FastMCP) -> None:
             if not path_obj.is_file():
                 return f"Not a file: {file_path}"
             
-            # Check file size
             file_size = path_obj.stat().st_size
             if file_size > max_size:
                 return f"File is too large ({format_size(file_size)}) to read. Maximum size is {format_size(max_size)}."
             
-            # Get file details
             details = get_file_details_dict(path_obj)
             
-            # Try to read as text
             try:
                 content = path_obj.read_text(errors='replace')
                 is_binary = False
             except UnicodeDecodeError:
                 return f"File appears to be binary and cannot be displayed as text: {file_path}"
             
-            # Format the output
             formatted_details = format_file_details(details)
             
             return f"{formatted_details}\n\n--- File Content ---\n\n{content}"

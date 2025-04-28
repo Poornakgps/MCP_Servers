@@ -22,46 +22,35 @@ def format_directory_tree(path: str, max_items: int = 15, max_depth: int = 3) ->
     if not path_obj.is_dir():
         return f"Not a directory: {path}"
     
-    # Initial output
     lines = []
     
-    # Add the root
     lines.append(f"{path_obj.name}/")
     
     def add_directory(current_path, prefix="", depth=1):
-        # Stop recursion if we've reached max depth
         if depth > max_depth:
             lines.append(f"{prefix}└── ...")
             return
         
         try:
-            # Get all items in this directory
             items = list(current_path.iterdir())
             
-            # Sort items: directories first, then alphabetically
             items.sort(key=lambda x: (0 if x.is_dir() else 1, x.name.lower()))
             
-            # Limit the number of items to show
             display_items = items[:max_items]
             hidden_count = len(items) - len(display_items)
             
-            # Process each item
             for i, item in enumerate(display_items):
                 is_last = (i == len(display_items) - 1) and (hidden_count == 0)
                 
-                # Choose the correct prefix characters
                 curr_prefix = f"{prefix}└── " if is_last else f"{prefix}├── "
                 next_prefix = f"{prefix}    " if is_last else f"{prefix}│   "
                 
-                # Add directories with trailing slash and process their children
                 if item.is_dir():
                     lines.append(f"{curr_prefix}{item.name}/")
                     add_directory(item, next_prefix, depth + 1)
                 else:
-                    # Just add files
                     lines.append(f"{curr_prefix}{item.name}")
             
-            # Show count of hidden items if any
             if hidden_count > 0:
                 lines.append(f"{prefix}└── ... {hidden_count} more items")
             
@@ -70,7 +59,6 @@ def format_directory_tree(path: str, max_items: int = 15, max_depth: int = 3) ->
         except Exception as e:
             lines.append(f"{prefix}└── [Error: {str(e)}]")
     
-    # Start the recursion
     add_directory(path_obj)
     
     return "\n".join(lines)

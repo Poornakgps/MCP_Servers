@@ -13,7 +13,6 @@ class FileInfo(BaseModel):
     @validator('path')
     def validate_path(cls, v):
         """Validate path string to prevent escape issues."""
-        # Replace backslashes with forward slashes to avoid JSON escape issues
         v = v.replace('\\', '/')
         return v
 
@@ -29,7 +28,6 @@ class SearchQuery(BaseModel):
     @validator('start_dir')
     def validate_start_dir(cls, v):
         """Validate directory path to prevent escape issues."""
-        # Replace backslashes with forward slashes to avoid JSON escape issues
         v = v.replace('\\', '/')
         return v
 
@@ -46,7 +44,6 @@ class ContentSearchQuery(BaseModel):
     @validator('start_dir')
     def validate_start_dir(cls, v):
         """Validate directory path to prevent escape issues."""
-        # Replace backslashes with forward slashes to avoid JSON escape issues
         v = v.replace('\\', '/')
         return v
 
@@ -62,7 +59,6 @@ class SizeSearchQuery(BaseModel):
     @validator('start_dir')
     def validate_start_dir(cls, v):
         """Validate directory path to prevent escape issues."""
-        # Replace backslashes with forward slashes to avoid JSON escape issues
         v = v.replace('\\', '/')
         return v
 
@@ -77,7 +73,6 @@ class RecentFilesQuery(BaseModel):
     @validator('start_dir')
     def validate_start_dir(cls, v):
         """Validate directory path to prevent escape issues."""
-        # Replace backslashes with forward slashes to avoid JSON escape issues
         v = v.replace('\\', '/')
         return v
 
@@ -90,7 +85,6 @@ class DuplicatesQuery(BaseModel):
     @validator('start_dir')
     def validate_start_dir(cls, v):
         """Validate directory path to prevent escape issues."""
-        # Replace backslashes with forward slashes to avoid JSON escape issues
         v = v.replace('\\', '/')
         return v
 
@@ -107,7 +101,6 @@ class FileOperationRequest(BaseModel):
     def validate_paths(cls, v):
         """Validate path strings to prevent escape issues."""
         if v is not None:
-            # Replace backslashes with forward slashes to avoid JSON escape issues
             v = v.replace('\\', '/')
         return v
 
